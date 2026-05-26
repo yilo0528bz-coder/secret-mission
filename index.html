@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>機密任務</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#111827;background:linear-gradient(135deg,#ffe2f0,#fff2c8,#c8f5ff)}button,input{font:inherit}.page{min-height:100vh;display:none;align-items:center;justify-content:center;padding:24px}.page.active{display:flex}.card{width:min(920px,100%);background:rgba(255,255,255,.88);border-radius:32px;box-shadow:0 24px 80px rgba(15,23,42,.18);overflow:hidden}.pad,.content{padding:34px}.head{background:#0f172a;color:white;padding:34px}.head p{color:rgba(255,255,255,.75);line-height:1.8}.pill{display:inline-flex;border-radius:999px;background:#ffe4f0;color:#be185d;padding:9px 14px;font-size:14px;font-weight:800;margin-bottom:18px}h1{font-size:clamp(48px,9vw,92px);line-height:.95;margin:0;font-weight:950}h2{font-size:clamp(36px,7vw,72px);line-height:1.05;margin:0;font-weight:950}h3,p{margin:0}.lead{margin-top:22px;color:#475569;font-size:18px;line-height:1.8}.btn{border:0;border-radius:18px;background:#0f172a;color:white;padding:15px 24px;font-weight:950;cursor:pointer;box-shadow:0 12px 28px rgba(15,23,42,.22)}.btn.light{background:white;color:#0f172a;border:1px solid #cbd5e1;box-shadow:none}.btn-row{margin-top:30px;display:flex;justify-content:flex-end;gap:14px;flex-wrap:wrap}.board{margin:30px auto 0;display:grid;grid-template-columns:repeat(7,42px);gap:8px;width:max-content;max-width:100%}.cell{width:42px;height:42px;border-radius:12px;border:0;cursor:pointer;background:linear-gradient(145deg,#fff,#f8cfe4);box-shadow:0 5px 0 #e8a7c3;font-size:22px;font-weight:950}.cell.open{background:#fff7ed;box-shadow:inset 0 0 0 2px rgba(251,146,60,.25);cursor:default}.cell.heart{background:linear-gradient(145deg,#fb7185,#be123c);color:white;box-shadow:0 0 24px rgba(251,113,133,.45)}.status{margin-top:22px;color:#475569;text-align:center;font-weight:800}.hidden{display:none}.progress{margin:22px 0;height:12px;background:rgba(255,255,255,.75);border-radius:999px;overflow:hidden}.bar{height:100%;background:#0f172a;width:0%;border-radius:999px}.task-card{padding:30px;background:rgba(255,255,255,.9);border-radius:30px;box-shadow:0 24px 80px rgba(15,23,42,.15)}.task-title{display:flex;gap:16px;align-items:flex-start;margin-bottom:22px}.task-icon{width:64px;height:64px;border-radius:22px;display:grid;place-items:center;background:#0f172a;color:white;font-size:30px;flex:0 0 auto}.box{background:#fff7ed;border-radius:24px;padding:22px}.box input{margin-top:14px;width:100%;padding:16px;border-radius:18px;border:1px solid #fed7aa;outline:none}.hint{margin-top:12px;color:#64748b;font-size:14px}.wrong{margin-top:12px;color:#e11d48;font-weight:950}.choice{background:#fff7ed;padding:26px;border-radius:28px;text-align:center}.choice-msg{margin-top:18px;color:#e11d48;font-size:20px;font-weight:950}.scene{position:relative;margin:28px auto 0;height:260px;max-width:720px;overflow:hidden;border-radius:28px;background:linear-gradient(to bottom,#bae6fd,#ffedd5,#d1fae5)}.map{position:absolute;left:24px;top:34px;font-size:42px;animation:map 4s ease-in-out forwards}.people{position:absolute;left:28px;bottom:34px;font-size:48px;animation:walk 4s ease-in-out forwards}@keyframes map{to{transform:translate(520px,-6px)}}@keyframes walk{to{transform:translateX(450px)}}.ground{position:absolute;bottom:28px;left:0;width:100%;height:8px;background:rgba(15,23,42,.18)}.home{position:absolute;bottom:44px;left:34px;font-size:24px}.sea{position:absolute;bottom:44px;right:34px;font-size:42px}.note{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);background:rgba(255,255,255,.86);border-radius:999px;padding:12px 20px;font-weight:950;white-space:nowrap}.bang{font-size:clamp(48px,12vw,104px);letter-spacing:.08em;color:#fed7aa;font-weight:950}.grid{display:grid;gap:18px}.info{border-radius:26px;padding:24px;background:#fff1f2}.hotel{background:#ffedd5}.info p{margin-top:10px;color:#475569;line-height:1.6}@media(min-width:760px){.grid{grid-template-columns:1fr 1fr}.pad,.content,.head{padding:48px}}@media(max-width:420px){.board{grid-template-columns:repeat(7,36px);gap:6px}.cell{width:36px;height:36px;font-size:18px}.people{font-size:40px}}
+
+.popup-overlay{
+  position:fixed;
+  inset:0;
+  z-index:999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(15,23,42,.42);
+  padding:24px;
+}
+.popup-overlay.active{display:flex}
+.popup-card{
+  width:min(360px,100%);
+  border-radius:28px;
+  background:white;
+  padding:28px;
+  text-align:center;
+  box-shadow:0 24px 80px rgba(15,23,42,.28);
+  animation:popup .18s ease-out both;
+}
+.popup-card .emoji{font-size:54px}
+.popup-card .title{
+  margin-top:10px;
+  font-size:24px;
+  font-weight:950;
+  color:#e11d48;
+}
+.popup-card .desc{
+  margin-top:8px;
+  color:#64748b;
+  font-weight:800;
+}
+@keyframes popup{
+  from{transform:scale(.86);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+.popup-button{
+  margin-top:18px;
+  border:0;
+  border-radius:18px;
+  background:#0f172a;
+  color:white;
+  padding:13px 22px;
+  font-weight:950;
+  cursor:pointer;
+  box-shadow:0 12px 28px rgba(15,23,42,.22);
+}
+.popup-button:hover{
+  filter:brightness(1.08);
+}
+
+
+.flip-board{
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(4,72px);
+  gap:12px;
+  justify-content:center;
+  width:max-content;
+  max-width:100%;
+}
+.flip-card{
+  width:72px;
+  height:72px;
+  border:0;
+  border-radius:20px;
+  cursor:pointer;
+  background:linear-gradient(145deg,#ffffff,#ffd6ea);
+  box-shadow:0 8px 0 #e8a7c3,0 14px 28px rgba(244,114,182,.22);
+  font-size:34px;
+  font-weight:950;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.flip-card:hover{transform:translateY(-2px)}
+.flip-card.open{
+  background:#fff7ed;
+  box-shadow:inset 0 0 0 2px rgba(251,146,60,.25);
+  transform:translateY(2px);
+  cursor:default;
+}
+.flip-card.heart{
+  background:linear-gradient(145deg,#fb7185,#be123c);
+  color:white;
+  box-shadow:0 0 26px rgba(251,113,133,.5);
+}
+@media(max-width:420px){
+  .flip-board{grid-template-columns:repeat(4,58px);gap:9px}
+  .flip-card{width:58px;height:58px;font-size:28px;border-radius:16px}
+}
+
+
+.flip-card.matched{
+  background:linear-gradient(145deg,#fb7185,#be123c);
+  color:white;
+  box-shadow:0 0 26px rgba(251,113,133,.5);
+  cursor:default;
+}
+.flip-card.locked{
+  pointer-events:none;
+}
+
+</style>
+</head>
+<body>
+
+
+
+<div id="minePage" class="page active">
+  <div class="card">
+    <div class="content" style="padding-top:48px;padding-bottom:48px;">
+      <div id="flipBoard" class="flip-board"></div>
+    </div>
+  </div>
+</div>
+</div></div>
+
+<div id="homePage" class="page"><div class="card"><div class="pad"><div class="pill">🕵️ Secret Mission</div><h1>翻開陷阱卡</h1><p class="lead">在八月尾巴有個非常重要的事發生了，勇者我們需要你！請盡快破解任務以免錯過這個重要的情報！</p><div class="btn-row"><button class="btn" onclick="goGame()">出發 GO</button></div></div></div></div>
+
+<div id="gamePage" class="page"><div class="card pad"><div style="text-align:center"><div class="pill">冒險任務解鎖中</div><h2>行前小測驗</h2><p class="lead" style="margin-left:auto;margin-right:auto">答完才可以打開真正的禮物。</p></div><div class="progress"><div id="bar" class="bar"></div></div><div class="task-card"><div class="task-title"><div id="taskIcon" class="task-icon"></div><div><h3 id="taskTitle"></h3><p id="taskSubtitle" style="margin-top:6px;color:#64748b"></p></div></div><div class="box"><p id="taskQuestion" style="font-weight:950;font-size:18px"></p><input id="answerInput" placeholder="輸入答案" onkeydown="if(event.key==='Enter') checkAnswer()"><p id="hintText" class="hint hidden"></p><p id="wrongText" class="wrong hidden">勇者！不是這個！你再想想！！</p></div><div class="btn-row"><button class="btn" onclick="checkAnswer()">下一關 ›</button></div></div></div></div>
+
+<div id="finalTaskPage" class="page"><div class="card"><div class="head"><div style="font-size:60px">✨</div><h2>最終任務</h2><p>最後，請勇者提交你的願望座標。</p></div><div class="content"><div class="box"><p style="font-weight:950;font-size:18px">東方有這麼遠~你想去哪!</p><input id="finalAnswer" placeholder="自由回答，但不可以空白" onkeydown="if(event.key==='Enter') submitFinalTask()"><p class="hint">自由回答，寫什麼都可以，但不可以空白。</p><p id="finalError" class="wrong hidden">勇者！願望座標不能空白！！</p></div><div class="btn-row"><button class="btn" onclick="submitFinalTask()">送出願望座標 ›</button></div></div></div></div>
+
+
+<div id="noIdeaPage" class="page">
+  <div class="card" style="background:#0f172a;color:white;text-align:center">
+    <div class="pad">
+      <div style="font-size:60px">😐</div>
+      <h2>真沒料</h2>
+      <p style="margin-top:18px;color:rgba(255,255,255,.75);font-size:20px;font-weight:900">沒事，阿咚搞定。</p>
+    </div>
+  </div>
+</div>
+
+<div id="choicePage" class="page"><div class="card"><div class="head"><div style="font-size:60px">🗺️</div><h2 id="choiceTitle">好的，勇者，我們收到你的願望了</h2><p id="choiceDesc">如果是勇者欣梅爾的話一定會這麼做的對吧?</p></div><div class="content"><div class="choice"><p style="font-size:20px;font-weight:950">請選擇你的判斷</p><div class="btn-row" style="justify-content:center"><button class="btn" onclick="showPage('travelPage'); startTravelTimer();">對</button><button class="btn light" onclick="choiceNo()">不對</button></div><p id="choiceMsg" class="choice-msg"></p></div></div></div></div>
+
+<div id="travelPage" class="page"><div class="card"><div class="head" style="text-align:center"><p style="margin-top:0;color:#fed7aa;font-size:14px;font-weight:950;letter-spacing:.25em">Final Route Loading</p><h2>正往東方前進</h2></div><div class="content"><div class="scene"><div class="map">🗺️</div><div class="people">🧍‍♀️🧍‍♀️</div><div class="ground"></div><div class="home">🏠</div><div class="sea">🌊</div><div class="note">東部座標確認中...</div></div><p class="status">請稍候，秘密地圖正在展開。</p></div></div></div>
+
+<div id="exclaimPage" class="page"><div class="card" style="background:#0f172a;color:white;text-align:center"><div class="pad"><div class="bang">!!!!!!!!!!!!!</div><p style="margin-top:28px;color:rgba(255,255,255,.55);font-weight:950;letter-spacing:.25em">Emergency Event Loading</p></div></div></div>
+
+<div id="riverPage" class="page"><div class="card"><div class="head" style="background:linear-gradient(135deg,#0c4a6e,#0f172a)"><p style="margin-top:0;color:#bae6fd;font-size:14px;font-weight:950;letter-spacing:.25em">限時事件觸發</p><h2>河邊緊急任務</h2><p>你走到了河邊，發生了掉落在人間的阿咚，你要救他嗎?</p></div><div class="content"><div class="choice" style="background:#f0f9ff"><div style="font-size:60px">🌊🐾</div><p style="font-size:20px;font-weight:950;margin-top:12px">請選擇你的行動</p><div class="btn-row" style="justify-content:center"><button class="btn" onclick="showPage('resultPage')">救</button><button class="btn light" onclick="rescueNo()">不救</button></div><p id="rescueMsg" class="choice-msg"></p></div></div></div></div>
+
+<div id="resultPage" class="page"><div class="card"><div class="head"><div style="font-size:60px">🎉</div><h2>獲得稀有物件 ⭐</h2><p>由於你拯救了可愛阿咚，阿咚忍痛將佩特PY賣掉換取機票送給你。</p></div><div class="content"><div class="grid">
+<div class="info"><div style="font-size:34px">🎫</div><h3>機票</h3><p>已經準備好。</p></div>
+<div class="info hotel"><div style="font-size:34px">🏨</div><h3>住宿</h3><p>不用煩惱。</p></div>
+<div class="info" style="background:#e0f2fe"><div style="font-size:34px">🌏</div><h3>環球影城</h3><p>門票/快通已備妥。</p></div>
+<div class="info" style="background:#fce7f3"><div style="font-size:34px">💗</div><h3>愉快的心</h3><p>也一起帶上吧。</p></div>
+</div><div class="choice" style="margin-top:20px;background:white;border:1px dashed #cbd5e1"><p style="font-size:20px;font-weight:950">請開始準備行李</p><p style="margin-top:8px;color:#64748b">請帶上你的錢、護照、行李箱、日幣、衣服、舒服鞋子，還有可愛的阿咚。</p><p style="margin-top:14px;font-size:26px;font-weight:950">我們準備出發！</p></div><div class="btn-row" style="justify-content:center"><button class="btn" onclick="showPage('tripPage')">GO</button></div></div></div></div>
+
+<div id="tripPage" class="page"><div class="card"><div class="head" style="background:linear-gradient(135deg,#0f172a,#334155)"><p style="margin-top:0;color:#fed7aa;font-size:14px;font-weight:950;letter-spacing:.25em">Mission Details</p><h2>行程情報</h2></div><div class="content"><div class="grid"><div class="info"><div style="font-size:34px">🎫</div><h3>機票資訊</h3><p>訂位代號：FF2YGB</p><p>去程：2026/08/29 IT210</p><p>台北桃園 TPE 06:40 → 大阪關西 KIX 10:25</p><p>回程：2026/09/02 IT213</p><p>大阪關西 KIX 21:05 → 台北桃園 TPE 23:00</p><p>集合：08/28 晚上阿咚家集合</p></div><div class="info hotel"><div style="font-size:34px">🏨</div><h3>飯店資訊</h3><p>飯店名稱：相鐵 FRESA INN 大阪難波站前</p><p>入住日期：2026/08/29 - 2026/09/02</p><p>地址：556-0011 大阪府大阪市浪速區難波中1-6-5</p><p>電話：(+81) 6-7668-2031</p><p>提醒：護照、日幣、行李箱、舒服鞋子不要忘記。</p></div></div><div class="choice" style="margin-top:20px;background:#e0f2fe"><p style="font-size:20px;font-weight:950">勇者任務完成</p><p style="margin-top:8px;color:#64748b">請截圖保存，並變成有錢伯爾提供多多日幣開夾娃娃！</p></div><div class="btn-row" style="justify-content:center"><button class="btn" onclick="resetAll()">回首頁</button></div></div></div></div>
+
+<script>
+const pages=["minePage","homePage","gamePage","finalTaskPage","noIdeaPage","choicePage","travelPage","exclaimPage","riverPage","resultPage","tripPage"];
+function showPage(id){pages.forEach(p=>document.getElementById(p).classList.toggle("active",p===id));scrollTo({top:0,behavior:"smooth"})}
+
+
+const flipCards=[
+  "💖","💖",
+  "💗","💗",
+  "💘","💘",
+  "🎂","👕","🧳","🎤",
+  "🗺️","🧸","📍","🎒",
+  "💴","👟"
+];
+
+let firstFlip=null;
+let secondFlip=null;
+let matchedPairs=0;
+let checkingPair=false;
+
+function shuffleCards(cards){
+  const result=[...cards];
+  for(let i=result.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [result[i],result[j]]=[result[j],result[i]];
+  }
+  return result;
+}
+
+let currentFlipCards=shuffleCards(flipCards);
+
+function buildFlipGame(){
+  const board=document.getElementById("flipBoard");
+  if(!board)return;
+  board.innerHTML="";
+  firstFlip=null;
+  secondFlip=null;
+  matchedPairs=0;
+  checkingPair=false;
+  currentFlipCards=shuffleCards(flipCards);
+  const flipStatus=document.getElementById("flipStatus");
+  if(flipStatus) flipStatus.textContent="翻出 3 組一樣的愛心。";
+
+  for(let i=0;i<currentFlipCards.length;i++){
+    const card=document.createElement("button");
+    card.className="flip-card";
+    card.textContent="?";
+    card.dataset.index=String(i);
+    card.dataset.value=currentFlipCards[i];
+    card.onclick=()=>openFlipCard(card);
+    board.appendChild(card);
+  }
+}
+
+function isHeart(value){
+  return ["💖","💗","💘"].includes(value);
+}
+
+function openFlipCard(card){
+  if(checkingPair)return;
+  if(card.classList.contains("open")||card.classList.contains("matched"))return;
+
+  card.classList.add("open");
+  card.textContent=card.dataset.value;
+
+  if(!firstFlip){
+    firstFlip=card;
+    return;
+  }
+
+  secondFlip=card;
+  checkingPair=true;
+
+  const sameValue=firstFlip.dataset.value===secondFlip.dataset.value;
+  const bothHearts=isHeart(firstFlip.dataset.value)&&isHeart(secondFlip.dataset.value);
+
+  if(sameValue&&bothHearts){
+    firstFlip.classList.add("matched");
+    secondFlip.classList.add("matched");
+    matchedPairs++;
+    const flipStatus=document.getElementById("flipStatus");
+    if(flipStatus) flipStatus.textContent=`愛心配對進度：${matchedPairs}/3`;
+
+    firstFlip=null;
+    secondFlip=null;
+    checkingPair=false;
+
+    if(matchedPairs>=3){
+      const flipStatus=document.getElementById("flipStatus");
+      if(flipStatus) flipStatus.textContent="完成！任務即將開啟。";
+      setTimeout(()=>showPage("homePage"),1500);
+    }
+    return;
+  }
+
+  const flipStatus=document.getElementById("flipStatus");
+  if(flipStatus) flipStatus.textContent="不一樣，蓋回去再試試。";
+  setTimeout(()=>{
+    firstFlip.classList.remove("open");
+    secondFlip.classList.remove("open");
+    firstFlip.textContent="?";
+    secondFlip.textContent="?";
+    firstFlip=null;
+    secondFlip=null;
+    checkingPair=false;
+  },850);
+}
+
+function resetFlipGame(){
+  buildFlipGame();
+}
+
+const puzzles=[
+{title:"任務 01",subtitle:"先確認你是不是合格的勇者。",question:"出門玩最重要的心情是什麼？",hint:"兩個字，跟開心很像。",answers:["快樂","開心","期待","爽"],icon:"🎒"},
+{title:"任務 02",subtitle:"勇者出門前，要先補充能量。",question:"生日最需要吃什麼甜甜的東西？",hint:"兩個字，會插蠟燭。",answers:["蛋糕","生日蛋糕","cake"],icon:"🎂"},
+{title:"任務 03",subtitle:"勇者不能空手出門，也不能空身出門。",question:"出門玩要帶上什麼，才不能冷死在路邊或被當變態？",hint:"兩個字，其中你家裡還有一件還是可愛狗狗喔。",answers:["衣服","服裝","衣物","換洗衣物","換洗衣服","要帶上衣服","帶上衣服"],icon:"👕"},
+{title:"任務 04",subtitle:"每個勇者都需要一點方向感，雖然有人沒有。",question:"出去玩前通常會先查什麼？",hint:"兩個字，到哪裡、吃什麼、玩什麼。",answers:["行程","路線","地圖","攻略","景點"],icon:"🗺️"},
+{title:"任務 05",subtitle:"勇者有時候需要靠歌聲補充魔力。",question:"什麼地方可以拿著麥克風，把靈魂唱到隔壁房間都聽見？",hint:"三個字，可以唱歌、點歌、搶麥克風。",answers:["唱KTV","KTV","ktv","唱歌","唱卡拉OK","卡拉OK","karaoke"],icon:"🎤"},
+{title:"任務 06",subtitle:"冒險途中有一個地方很危險，錢包會被吸走。",question:"什麼地方會讓你不自覺花很多錢，偶爾掉落酷酷戰利品？",hint:"精神時光屋/金錢消失處-錢錢跟時間有時候就是這麼突然，叮~就憑空不見。",answers:["夾娃娃機店","夾娃娃機","娃娃機","娃娃機店","夾娃娃","夾娃娃店","夾娃娃機台"],icon:"🧸"},
+{title:"任務 07",subtitle:"勇者出門前，要先整理裝備。",question:"旅行時裝東西的東西叫什麼？",hint:"三個字，很大且有輪子。",answers:["行李箱","行李","登機箱","旅行箱"],icon:"🧳"},
+{title:"任務 08",subtitle:"三天後行程將出發，請確認前進方向。",question:"我們往哪個方向前行？",hint:"不是西部、不是南部、不是北部。",answers:["東部","東","往東","east","東邊","東方"],icon:"📍"}];
+let step=0,wrongCounts={},choiceWrongCount=0,rescueWrongCount=0;
+const choiceWrongMessages=["給我按對喔","你很皮喔","想被扁嗎","你有病喔","?????"];
+const rescueWrongMessages=["?????","你再想一下","你快失去我了喔","??????","OK沒愛了","???還來???"];
+function norm(v){return v.trim().toLowerCase()}
+function goGame(){step=0;renderTask();showPage("gamePage");setTimeout(()=>document.getElementById("answerInput").focus(),80)}
+function renderTask(){const t=puzzles[step];taskIcon.textContent=t.icon;taskTitle.textContent=t.title;taskSubtitle.textContent=t.subtitle;taskQuestion.textContent=t.question;answerInput.value="";wrongText.classList.add("hidden");hintText.classList.add("hidden");hintText.textContent="提示："+t.hint;bar.style.width=`${Math.round(((step+1)/puzzles.length)*100)}%`}
+function checkAnswer(){const t=puzzles[step];const ok=t.answers.some(a=>a.toLowerCase()===norm(answerInput.value));if(!ok){wrongCounts[step]=(wrongCounts[step]||0)+1;wrongText.classList.remove("hidden");if(wrongCounts[step]>=2)hintText.classList.remove("hidden");return}if(step===puzzles.length-1){showPage("finalTaskPage");setTimeout(()=>finalAnswer.focus(),80)}else{step++;renderTask();setTimeout(()=>answerInput.focus(),80)}}
+
+
+
+function submitFinalTask(){const finalValue=finalAnswer.value;if(finalValue.trim().length===0){finalError.classList.remove("hidden");return}finalError.classList.add("hidden");finalAnswer.value="";if(isNoIdeaAnswer(finalValue)){goChoiceAfterNoIdea();return}if(isTargetAnswer(finalValue)){finalAnswerBranch="target";openChoicePage();return}finalAnswerBranch="other";openChoicePage()}
+
+
+
+
+let finalAnswerBranch="target";
+
+function isNoIdeaAnswer(value){
+  const clean=value.trim().replace(/[\s　，,。.!！?？~～]/g,"").toLowerCase();
+  const noIdeaWords=["都可以","隨便","都好","沒想法","沒有想法","不知道","無所謂","都行","皆可","你決定","你安排","沒意見","沒差"];
+  return noIdeaWords.some(word=>clean.includes(word));
+}
+
+function isTargetAnswer(value){
+  const clean=value.trim().replace(/[\s　，,。.!！?？~～]/g,"").toLowerCase();
+  const targetWords=["日本","大阪","出國","關西","環球","環球影城","usj","japan","osaka","日本大阪"];
+  return targetWords.some(word=>clean.includes(word));
+}
+
+function openChoicePage(){
+  const title=document.getElementById("choiceTitle");
+  const desc=document.getElementById("choiceDesc");
+
+  if(finalAnswerBranch==="noIdea"){
+    if(title) title.textContent="勇者，雖然你很沒料";
+    if(desc) desc.textContent="但如果是勇者欣梅爾的話一定會這麼做的對吧?";
+  }else if(finalAnswerBranch==="target"){
+    if(title) title.textContent="好的，勇者，我們收到你的願望了";
+    if(desc) desc.textContent="如果是勇者欣梅爾的話一定會這麼做的對吧?";
+  }else{
+    if(title) title.textContent="好的，勇者，我們收到你的願望了";
+    if(desc) desc.textContent="如果是勇者欣梅爾的話一定會這麼做的，但你不是欣梅爾。";
+  }
+
+  showPage("choicePage");
+}
+
+function goChoiceAfterNoIdea(){
+  finalAnswerBranch="noIdea";
+  showPage("noIdeaPage");
+  setTimeout(()=>openChoicePage(),2200);
+}
+
+function choiceNo(){choiceWrongCount++;choiceMsg.textContent=choiceWrongMessages[Math.min(choiceWrongCount-1,choiceWrongMessages.length-1)]}
+function startTravelTimer(){setTimeout(()=>showPage("exclaimPage"),4300);setTimeout(()=>showPage("riverPage"),6900)}
+function rescueNo(){rescueWrongCount++;rescueMsg.textContent=rescueWrongMessages[Math.min(rescueWrongCount-1,rescueWrongMessages.length-1)]}
+function resetAll(){step=0;wrongCounts={};choiceWrongCount=0;rescueWrongCount=0;finalAnswerBranch="target";choiceMsg.textContent="";rescueMsg.textContent="";buildFlipGame();showPage("minePage")}
+buildFlipGame();
+</script>
+</body>
+</html>
