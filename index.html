@@ -1626,6 +1626,30 @@
       margin: 0 0 4px;
     }
 
+    .mission-review-errors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .mission-review-chip {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(255, 240, 202, 0.78);
+      color: rgba(91, 65, 32, 0.86);
+      border: 1px solid rgba(216, 183, 106, 0.35);
+      word-break: break-word;
+    }
+
+    .mission-review-wish strong::before {
+      content: "★ ";
+      color: #d79d28;
+    }
+
     .mission-review-empty {
       text-align: center;
       color: rgba(31, 41, 55, 0.55);
@@ -1996,7 +2020,7 @@
       <div class="rare-grid">
         <div class="rare-card"><span class="rare-icon">🎫</span><h3>機票</h3><p>已經準備好。</p></div>
         <div class="rare-card"><span class="rare-icon">🏨</span><h3>住宿</h3><p>不用煩惱。</p></div>
-        <div class="rare-card"><span class="rare-icon">🌏</span><h3>環球影城</h3><p>門票已備妥。</p></div>
+        <div class="rare-card"><span class="rare-icon">🌏</span><h3>環球影城</h3><p>門票/快通已備妥。</p></div>
         <div class="rare-card"><span class="rare-icon">💗</span><h3>愉快的心</h3><p>也一起帶上吧。</p></div>
       </div>
       <div class="prep-box">
@@ -2029,7 +2053,8 @@
         </div>
       </div>
       <div class="final-note">龍龍任務完成。請截圖保存，並變成有錢伯爾提供多多日幣開夾娃娃！</div>
-      <button id="checklistBtn">準備物品確認</button>
+      <button id="checklistBtn">準備清單</button>
+      <button id="tripReviewBtn" type="button">回答紀錄</button>
     </section>
 
     <section class="screen big" id="checklistScreen">
@@ -2045,14 +2070,13 @@
         <label class="check-item"><input type="checkbox" /><span>梳洗用品</span></label>
         <label class="check-item"><input type="checkbox" /><span>快樂的心</span></label>
       </div>
-      <button class="review-mini-btn" id="reviewMiniBtn" type="button">錯誤回顧</button>
-      <button id="resetBtn">回首頁</button>
+      <button id="checklistTripBtn" type="button">旅遊資訊</button>
     </section>
 
     <section class="screen big mission-review-page" id="missionReviewScreen">
-      <h2 class="screen-title">錯誤回顧</h2>
+      <h2 class="screen-title">紀錄回顧</h2>
       <div class="mission-review-list" id="missionReviewList"></div>
-      <button id="backChecklistBtn" type="button">回準備物品</button>
+      <button id="reviewTripBtn" type="button">旅遊資訊</button>
     </section>
   </main>
 
@@ -2144,6 +2168,9 @@
     const noRescueBtn = document.getElementById("noRescueBtn");
     const goBtn = document.getElementById("goBtn");
     const checklistBtn = document.getElementById("checklistBtn");
+    const tripReviewBtn = document.getElementById("tripReviewBtn");
+    const checklistTripBtn = document.getElementById("checklistTripBtn");
+    const reviewTripBtn = document.getElementById("reviewTripBtn");
     const resetBtn = document.getElementById("resetBtn");
     const mobileNotice = document.getElementById("mobileNotice");
     const continueMobileBtn = document.getElementById("continueMobileBtn");
@@ -2155,8 +2182,6 @@
     const wishWarningText = document.getElementById("wishWarningText");
     const rescueWrongText = document.getElementById("rescueWrongText");
     const missionReviewList = document.getElementById("missionReviewList");
-    const reviewMiniBtn = document.getElementById("reviewMiniBtn");
-    const backChecklistBtn = document.getElementById("backChecklistBtn");
 
     const choiceWrongMessages = [];
     const rescueWrongMessages = ["?????", "你再想一下", "你快失去我了喔", "??????", "OK沒愛了", "???還來???"];
@@ -2192,18 +2217,28 @@
       if (!missionReviewList) return;
       const rows = [];
       const labels = ["第一題", "第二題", "第三題", "第四題", "第五題"];
-      let wrongIndex = 0;
+      const wrongByStage = new Map();
       missionAttempts.forEach((item) => {
         if (item.correct) return;
-        wrongIndex += 1;
-        rows.push(`<div class="mission-review-item"><strong>${wrongIndex}. ${labels[item.stage - 1]}｜答錯</strong>${escapeHTML(item.value)}</div>`);
+        if (!wrongByStage.has(item.stage)) wrongByStage.set(item.stage, []);
+        wrongByStage.get(item.stage).push(item.value);
       });
+      labels.forEach((label, index) => {
+        const values = wrongByStage.get(index + 1);
+        if (!values || !values.length) return;
+        const chips = values.map((value) => `<span class="mission-review-chip">${escapeHTML(value)}</span>`).join("");
+        rows.push(`<div class="mission-review-item"><strong>${label}錯誤</strong><div class="mission-review-errors">${chips}</div></div>`);
+      });
+      if (wishAttempts.length > 0) {
+        const lastWish = wishAttempts[wishAttempts.length - 1];
+        rows.push(`<div class="mission-review-item mission-review-wish"><strong>龍龍想去的地方</strong>${escapeHTML(lastWish.value)}</div>`);
+      }
       if (rescueNoTotalCount > 0) {
         const penalty = rescueNoTotalCount <= 10 ? "520" : (rescueNoTotalCount < 100 ? "1314" : "520+1314");
         rows.push(`<div class="mission-review-penalty">因為你見死不救${rescueNoTotalCount}次，罰款${penalty}至咚咚國庫</div>`);
       }
       if (!rows.length) {
-        rows.push(`<div class="mission-review-empty">目前沒有錯誤紀錄。</div>`);
+        rows.push(`<div class="mission-review-empty">目前沒有紀錄。</div>`);
       }
       missionReviewList.innerHTML = rows.join("");
     }
@@ -2698,14 +2733,15 @@
       showScreen(checklistScreen);
     });
 
-    reviewMiniBtn.addEventListener("click", () => {
+    tripReviewBtn.addEventListener("click", () => {
       updateMissionReview();
       showScreen(missionReviewScreen);
     });
 
-    backChecklistBtn.addEventListener("click", () => showScreen(checklistScreen));
+    checklistTripBtn.addEventListener("click", () => showScreen(tripInfoScreen));
+    reviewTripBtn.addEventListener("click", () => showScreen(tripInfoScreen));
 
-    resetBtn.addEventListener("click", () => {
+    if (resetBtn) resetBtn.addEventListener("click", () => {
       current = 0;
       locked = true;
       choiceWrongCount = 0;
