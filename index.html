@@ -2235,7 +2235,7 @@
       }
       if (rescueNoTotalCount > 0) {
         const penalty = rescueNoTotalCount <= 10 ? "520" : (rescueNoTotalCount < 100 ? "1314" : "520+1314");
-        rows.push(`<div class="mission-review-penalty">因為你見死不救${rescueNoTotalCount}次，罰款${penalty}至咚咚國庫</div>`);
+        rows.push(`<div class="mission-review-penalty">因為你見死不救${rescueNoTotalCount}次，罰款${penalty}至咚咚國庫。</div>`);
       }
       if (!rows.length) {
         rows.push(`<div class="mission-review-empty">目前沒有紀錄。</div>`);
