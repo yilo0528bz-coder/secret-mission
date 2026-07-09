@@ -1532,6 +1532,119 @@
     }
 
 
+
+
+    .review-mini-btn {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 8;
+      width: auto;
+      min-width: 0;
+      padding: 8px 13px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      box-shadow: 0 8px 18px rgba(143, 106, 47, 0.18);
+    }
+
+    .mission-review {
+      position: absolute;
+      right: 16px;
+      bottom: 62px;
+      z-index: 12;
+      width: min(440px, calc(100% - 32px));
+      max-height: min(440px, 62vh);
+      padding: clamp(14px, 2.4vw, 20px);
+      border-radius: 22px;
+      border: 1px solid rgba(216, 183, 106, 0.54);
+      background: rgba(255, 250, 238, 0.94);
+      box-shadow: 0 18px 42px rgba(143, 106, 47, 0.26);
+      text-align: left;
+      display: none;
+    }
+
+    .mission-review.is-open {
+      display: block;
+    }
+
+    .mission-review-title {
+      margin: 0 34px 12px 0;
+      color: #8f6a2f;
+      font-size: clamp(17px, 2.4vw, 22px);
+      font-weight: 900;
+      text-align: left;
+      letter-spacing: 0.08em;
+    }
+
+    .mission-review-close {
+      position: absolute;
+      right: 12px;
+      top: 10px;
+      width: 30px;
+      height: 30px;
+      min-width: 0;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 18px;
+      line-height: 1;
+      box-shadow: none;
+    }
+
+    .mission-review-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      max-height: min(330px, 46vh);
+      overflow-y: auto;
+      padding-right: 8px;
+      overscroll-behavior: contain;
+    }
+
+    .mission-review-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .mission-review-list::-webkit-scrollbar-thumb {
+      background: rgba(191, 139, 54, 0.45);
+      border-radius: 999px;
+    }
+
+    .mission-review-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      color: rgba(31, 41, 55, 0.78);
+      font-size: 14px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .mission-review-item strong {
+      display: block;
+      color: #8f6a2f;
+      margin: 0 0 4px;
+    }
+
+    .mission-review-empty {
+      text-align: center;
+      color: rgba(31, 41, 55, 0.55);
+      font-size: 14px;
+    }
+
+    .mission-review-penalty {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 105, 97, 0.16);
+      color: #c2410c;
+      border: 1px solid rgba(248, 113, 113, 0.32);
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.7;
+      letter-spacing: 0.03em;
+    }
+
     .bomb-screen {
       width: min(760px, 92vw);
       overflow: hidden;
@@ -1662,6 +1775,28 @@
       opacity: 0;
       transform: translateY(16px);
       pointer-events: none;
+    }
+
+
+
+    .mission-review-page {
+      width: min(820px, 92vw);
+      text-align: center;
+    }
+
+    .mission-review-page .mission-review-list {
+      max-height: min(520px, 58vh);
+      margin-top: 18px;
+      padding: 4px 12px 4px 0;
+      text-align: left;
+    }
+
+    .mission-review-page .mission-review-item {
+      font-size: clamp(14px, 1.8vw, 16px);
+    }
+
+    .mission-review-page button {
+      margin-top: 18px;
     }
 
     @keyframes bombPulse {
@@ -1910,7 +2045,14 @@
         <label class="check-item"><input type="checkbox" /><span>梳洗用品</span></label>
         <label class="check-item"><input type="checkbox" /><span>快樂的心</span></label>
       </div>
+      <button class="review-mini-btn" id="reviewMiniBtn" type="button">錯誤回顧</button>
       <button id="resetBtn">回首頁</button>
+    </section>
+
+    <section class="screen big mission-review-page" id="missionReviewScreen">
+      <h2 class="screen-title">錯誤回顧</h2>
+      <div class="mission-review-list" id="missionReviewList"></div>
+      <button id="backChecklistBtn" type="button">回準備物品</button>
     </section>
   </main>
 
@@ -1987,6 +2129,7 @@
     const resultScreen = document.getElementById("resultScreen");
     const tripInfoScreen = document.getElementById("tripInfoScreen");
     const checklistScreen = document.getElementById("checklistScreen");
+    const missionReviewScreen = document.getElementById("missionReviewScreen");
 
     const treasureBtn = document.getElementById("treasureBtn");
     const fairyBtn = document.getElementById("fairyBtn");
@@ -2011,10 +2154,72 @@
     const choiceWrongText = document.getElementById("choiceWrongText");
     const wishWarningText = document.getElementById("wishWarningText");
     const rescueWrongText = document.getElementById("rescueWrongText");
+    const missionReviewList = document.getElementById("missionReviewList");
+    const reviewMiniBtn = document.getElementById("reviewMiniBtn");
+    const backChecklistBtn = document.getElementById("backChecklistBtn");
 
     const choiceWrongMessages = [];
     const rescueWrongMessages = ["?????", "你再想一下", "你快失去我了喔", "??????", "OK沒愛了", "???還來???"];
     let bombSorryTimer = null;
+    let missionAttempts = [];
+    let wishAttempts = [];
+    let bombPenaltyTriggered = false;
+    let rescueNoTotalCount = 0;
+
+    function escapeHTML(value) {
+      return String(value).replace(/[&<>'"]/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;"
+      }[char]));
+    }
+
+    function recordMissionAttempt(stageIndex, value, correct) {
+      missionAttempts.push({
+        stage: stageIndex + 1,
+        value,
+        correct: Boolean(correct)
+      });
+    }
+
+    function recordWishAttempt(value, branch) {
+      wishAttempts.push({ value, branch });
+    }
+
+    function updateMissionReview() {
+      if (!missionReviewList) return;
+      const rows = [];
+      const labels = ["第一題", "第二題", "第三題", "第四題", "第五題"];
+      let wrongIndex = 0;
+      missionAttempts.forEach((item) => {
+        if (item.correct) return;
+        wrongIndex += 1;
+        rows.push(`<div class="mission-review-item"><strong>${wrongIndex}. ${labels[item.stage - 1]}｜答錯</strong>${escapeHTML(item.value)}</div>`);
+      });
+      if (rescueNoTotalCount > 0) {
+        const penalty = rescueNoTotalCount <= 10 ? "520" : (rescueNoTotalCount < 100 ? "1314" : "520+1314");
+        rows.push(`<div class="mission-review-penalty">因為你見死不救${rescueNoTotalCount}次，罰款${penalty}至咚咚國庫</div>`);
+      }
+      if (!rows.length) {
+        rows.push(`<div class="mission-review-empty">目前沒有錯誤紀錄。</div>`);
+      }
+      missionReviewList.innerHTML = rows.join("");
+    }
+
+    function closeMissionReview() {
+      // 錯誤回顧現在是獨立頁面，保留空函式避免舊流程呼叫出錯。
+    }
+
+    function resetMissionRecord() {
+      missionAttempts = [];
+      wishAttempts = [];
+      bombPenaltyTriggered = false;
+      rescueNoTotalCount = 0;
+      updateMissionReview();
+      closeMissionReview();
+    }
 
     function isMobileDevice() {
       return window.matchMedia("(max-width: 768px)").matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
@@ -2138,7 +2343,7 @@
     function hideQuestMap() { questMap.classList.remove("visible"); }
 
     function hideAllScreens() {
-      [treasureScreen, fairyScreen, wishScreen, noIdeaScreen, difficultyScreen, choiceScreen, travelScreen, exclaimScreen, riverScreen, bombScreen, resultScreen, tripInfoScreen, checklistScreen].forEach((screen) => screen.classList.remove("active"));
+      [treasureScreen, fairyScreen, wishScreen, noIdeaScreen, difficultyScreen, choiceScreen, travelScreen, exclaimScreen, riverScreen, bombScreen, resultScreen, tripInfoScreen, checklistScreen, missionReviewScreen].forEach((screen) => screen.classList.remove("active"));
       answerScreen.style.display = "none";
     }
 
@@ -2153,7 +2358,7 @@
     }
 
     function showAnswerScreen() {
-      [treasureScreen, fairyScreen, wishScreen, noIdeaScreen, difficultyScreen, choiceScreen, travelScreen, exclaimScreen, riverScreen, bombScreen, resultScreen, tripInfoScreen, checklistScreen].forEach((screen) => screen.classList.remove("active"));
+      [treasureScreen, fairyScreen, wishScreen, noIdeaScreen, difficultyScreen, choiceScreen, travelScreen, exclaimScreen, riverScreen, bombScreen, resultScreen, tripInfoScreen, checklistScreen, missionReviewScreen].forEach((screen) => screen.classList.remove("active"));
       answerScreen.style.display = "grid";
       smallCompass.style.display = "grid";
       showQuestMap();
@@ -2314,7 +2519,10 @@
       const rawTyped = input.value.trim();
       if (!rawTyped) return;
 
-      if (!isCorrectAnswer()) {
+      const isCorrect = isCorrectAnswer();
+      recordMissionAttempt(current, rawTyped, isCorrect);
+
+      if (!isCorrect) {
         playWrongAnimation();
         return;
       }
@@ -2426,6 +2634,7 @@
 
       wishWarningText.textContent = "";
       finalAnswerBranch = getFinalAnswerBranch(wishValue);
+      recordWishAttempt(wishValue, finalAnswerBranch);
 
       if (finalAnswerBranch === "noIdea") {
         showScreen(noIdeaScreen);
@@ -2452,7 +2661,9 @@
 
     noRescueBtn.addEventListener("click", () => {
       rescueWrongCount++;
+      rescueNoTotalCount++;
       if (rescueWrongCount >= 100) {
+        bombPenaltyTriggered = true;
         rescueWrongText.textContent = "";
         bombSorryBtn.classList.add("is-hidden");
         showScreen(bombScreen);
@@ -2481,7 +2692,18 @@
 
     goBtn.addEventListener("click", () => showScreen(tripInfoScreen));
 
-    checklistBtn.addEventListener("click", () => showScreen(checklistScreen));
+    checklistBtn.addEventListener("click", () => {
+      updateMissionReview();
+      closeMissionReview();
+      showScreen(checklistScreen);
+    });
+
+    reviewMiniBtn.addEventListener("click", () => {
+      updateMissionReview();
+      showScreen(missionReviewScreen);
+    });
+
+    backChecklistBtn.addEventListener("click", () => showScreen(checklistScreen));
 
     resetBtn.addEventListener("click", () => {
       current = 0;
@@ -2489,6 +2711,7 @@
       choiceWrongCount = 0;
       rescueWrongCount = 0;
       finalAnswerBranch = "target";
+      resetMissionRecord();
       clearTimeout(travelTimer);
       clearTimeout(exclaimTimer);
       clearTimeout(noIdeaTimer);
